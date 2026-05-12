@@ -1,0 +1,221 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #1a1a2e;
+  color: #eee;
+  min-height: 100vh;
+}
+
+.home {
+  max-width: 550px;
+  margin: 40px auto;
+  padding: 30px;
+}
+
+/* Guest - tela de não logado */
+.guest-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 80vh;
+}
+
+.guest-actions h1 {
+  color: #4fc3f7;
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.guest-actions p {
+  color: #888;
+  margin-bottom: 16px;
+}
+
+.guest-links {
+  display: flex;
+  gap: 12px;
+}
+
+/* Header logado */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.greeting {
+  font-size: 1.2rem;
+  color: #4fc3f7;
+  font-weight: 500;
+}
+
+.btn-logout {
+  padding: 8px 16px;
+  border: 1px solid #f44336;
+  border-radius: 8px;
+  background: transparent;
+  color: #f44336;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-logout:hover {
+  background-color: #f44336;
+  color: white;
+}
+
+/* Card da conta */
+.conta-card {
+  background-color: #16213e;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.conta-card h2 {
+  color: #4fc3f7;
+  margin-bottom: 16px;
+  font-size: 1.3rem;
+}
+
+.conta-info {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #0f3460;
+}
+
+.conta-label {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.conta-value {
+  color: #eee;
+  font-weight: 500;
+}
+
+.conta-saldo {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 0 0;
+  margin-top: 8px;
+}
+
+.saldo-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #4caf50;
+}
+
+/* Seções de operações */
+.operacoes {
+  background-color: #16213e;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.operacoes h3 {
+  color: #4fc3f7;
+  margin-bottom: 14px;
+  font-size: 1.1rem;
+}
+
+.operacao-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.operacao-form input {
+  padding: 12px 16px;
+  border: 1px solid #4fc3f7;
+  border-radius: 8px;
+  background-color: #1a1a2e;
+  color: #eee;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.operacao-form input:focus {
+  border-color: #81d4fa;
+}
+
+.operacao-form input::placeholder {
+  color: #888;
+}
+
+.operacao-btns {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-depositar, .btn-sacar, .btn-transferir {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.2s;
+}
+
+.btn-depositar {
+  background-color: #4caf50;
+  color: white;
+}
+
+.btn-sacar {
+  background-color: #f44336;
+  color: white;
+}
+
+.btn-transferir {
+  background-color: #ff9800;
+  color: white;
+}
+
+.btn-depositar:hover, .btn-sacar:hover, .btn-transferir:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+.btn-depositar:active, .btn-sacar:active, .btn-transferir:active {
+  transform: scale(0.98);
+}
+
+/* Link de navegação */
+.nav-link {
+  display: inline-block;
+  padding: 10px 18px;
+  background-color: #0f3460;
+  color: #4fc3f7;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.nav-link:hover {
+  background-color: #1a4a7a;
+}
+
+/* Link de transações */
+.link-transacoes {
+  margin-bottom: 16px;
+  text-align: center;
+}
