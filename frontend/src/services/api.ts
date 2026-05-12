@@ -48,12 +48,12 @@ export async function Transferir(idOrigem:number, idDestino:number, valor:number
 }
 
 //requisição post para registrar
-export async function Registrar(email:string, senha:string, titular:string, saldoInicial:number)
+export async function Registrar(email:string, senha:string, titular:string, saldoInicial:number, tipo:string)
 {
     const response = await fetch(`${API_URL}/api/registrar`,{
         method: "POST",
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({email, senha,titular,saldoInicial})
+        body: JSON.stringify({email, senha,titular,saldoInicial, tipo})
         
     });
     return response.json();
@@ -72,5 +72,10 @@ export async function Login(email:string, senha: string){
 export async function ListarTransacoes(contaId:number)
 {
     const response = await fetch(`${API_URL}/api/contas/${contaId}/transacoes`);
+    return response.json();
+}
+
+export async function BuscarSaldo(contaId:number) {
+    const response = await fetch (`${API_URL}/api/contas/${contaId}`);
     return response.json();
 }

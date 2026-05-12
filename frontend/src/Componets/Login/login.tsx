@@ -11,6 +11,7 @@ function Logarr(){
     const [sucesso, setSucesso] = useState<string>("");
     const navigate = useNavigate();
     
+    // Quando o usuário clicar no botão entrar, chama a função handleLogin
     async function handleLogin(){
         const resposta = await LoginAPI(email,senha);
 

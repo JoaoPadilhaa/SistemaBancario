@@ -73,7 +73,7 @@ public class BancoDeDados
         return null;
     }
 
-    public int CriarConta(string titular, decimal saldoInicial)
+    public int CriarConta(string titular, decimal saldoInicial, string tipo = "corrente")
     {
         // ABre conexão com o MySQL
         using var connection = new MySqlConnection(_connectionString);
@@ -81,13 +81,14 @@ public class BancoDeDados
 
         //Prepara o comando SQL de Insert
         using var command = new MySqlCommand(
-            "INSERT INTO contas (titular, saldo) VALUES (@titular, @saldo)",
+            "INSERT INTO contas (titular, saldo, tipo) VALUES (@titular, @saldo, @tipo)",
             connection
         );
 
         //Substitui os @parametros pelos valores reais
         command.Parameters.AddWithValue("@titular", titular);
         command.Parameters.AddWithValue("@saldo", saldoInicial);
+        command.Parameters.AddWithValue("@tipo", tipo);
 
         //Executa o insert(não retorna dada, só insere)
         command.ExecuteNonQuery();
@@ -229,5 +230,21 @@ public class BancoDeDados
 
         //retorna a lista de transações
         return transacoes;
+    }
+
+    public void AplicarRendimento()
+    {
+        //Abre conexão com o banco
+        using var connection = new MySqlConnection(_connectionString);
+        connection.Open();
+
+        //Prepara o comando SQL para atualizar o saldo das contas poupanças
+        using var command = new MySqlCommand(
+            "UPDATE contas SET saldo = saldo * 0.5 WHERE tipo = 'poupanca'",
+            connection
+        );
+
+        //Executa o comando
+        command.ExecuteNonQuery();
     }
 }

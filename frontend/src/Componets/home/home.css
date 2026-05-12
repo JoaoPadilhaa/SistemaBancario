@@ -219,3 +219,21 @@ body {
   margin-bottom: 16px;
   text-align: center;
 }
+
+/* Indicador de rendimento */
+.rendimento-badge {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 6px 12px;
+  background-color: #1b5e20;
+  color: #a5d6a7;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}

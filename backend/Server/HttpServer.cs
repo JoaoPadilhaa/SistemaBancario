@@ -79,6 +79,11 @@ public class HttpServer
                 int id = ExtrairId(caminho);
                 HandleListrarTransacoes(context, id);
             }
+            else if(metodo == "GET" && caminho.StartsWith("/api/contas") && !caminho.EndsWith("/transacoes"))
+            {
+                int id = ExtrairId(caminho);
+                HandleBuscarConta(context, id);
+            }
             else if (metodo == "POST" && caminho.EndsWith("/depositar"))
             {
                 int id = ExtrairId(caminho);
@@ -100,8 +105,7 @@ public class HttpServer
             else if(metodo == "POST" && caminho == "/api/login")
             {
                 HandleLogin(context);
-            }
-            
+            }            
             else
             {
                 //nenhuma rota bateu, retorna 404
@@ -132,9 +136,10 @@ public class HttpServer
         string senha = dados.GetProperty("senha").GetString();
         string titular = dados.GetProperty("titular").GetString();
         decimal saldoInicial = dados.GetProperty("saldoInicial").GetDecimal();
+        string tipo = dados.GetProperty("tipo").GetString() ?? "corrente";
 
         //cria conta bancaria
-        int contaId = _banco.CriarConta(titular, saldoInicial);
+        int contaId = _banco.CriarConta(titular, saldoInicial, tipo);
 
         //cria usuario e vincula a conta bancaria
         //pois a variavel acima retorna o id da conta recem criada, e aqui apontamos pra ele
@@ -363,6 +368,18 @@ public class HttpServer
     {
         var transacoes = _banco.ListarTransacoes(id);
         string json = JsonSerializer.Serialize(transacoes);
+        EnviarResposta(context, json, 200);
+    }
+
+    private void HandleBuscarConta(HttpListenerContext context, int id)
+    {
+        var conta = _banco.BuscarContaPorId(id);
+        if(conta == null)
+        {
+            EnviarResposta(context, "{\"erro\":\"Conta não encontrada\"}", 404);
+            return;
+        };
+        string json = JsonSerializer.Serialize(conta);
         EnviarResposta(context, json, 200);
     }
 }

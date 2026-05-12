@@ -6,12 +6,16 @@ import "./historico.css";
 function HistoricTransacoes (){
     const [transacoes, setTransacoes] = useState<any[]>([]);
 
+    // busca historico de transações do usuario no localstorage 
     useEffect(() => {
         const dados = localStorage.getItem("usuario");
         if (dados){
             const usuario = JSON.parse(dados);
             ListarTransacoes(usuario.id).then(data => {
-                setTransacoes(data);
+                console.log("Resposta transações:", data);
+                if( Array.isArray(data)) {
+                    setTransacoes(data);
+                }
             });
         }
     }, []);

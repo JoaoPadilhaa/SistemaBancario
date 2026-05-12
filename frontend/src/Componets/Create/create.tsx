@@ -10,10 +10,11 @@ export const Create = () => {
     const [saldoInicial, setSaldoInicial] = useState<number>(0);
     const [mensagem, setMensagem] = useState<string>("");
     const [sucesso, setSucesso] = useState<boolean>(false);
+    const [tipo, setTipo] = useState<string>("");
     const navigate = useNavigate();
 
     async function handleRegistrar() {
-        const resposta = await Registrar(email, senha, titular, saldoInicial);
+        const resposta = await Registrar(email, senha, titular, saldoInicial, tipo);
         if (resposta.erro) {
             setMensagem(resposta.erro);
             setSucesso(false);
@@ -43,6 +44,11 @@ export const Create = () => {
                         placeholder="Digite seu Email"
                         onChange={(e) => setEmail(e.target.value)}
                     />
+                    <select className="select-tipo" onChange={(e) => setTipo(e.target.value)}>
+                        <option value="">Selecione o tipo de conta</option>
+                        <option value="corrente">Conta Corrente</option>
+                        <option value="poupanca">Conta Poupança (rende 1% a cada 20s)</option>
+                    </select>
                     <input
                         type="password"
                         placeholder="Digite sua Senha"

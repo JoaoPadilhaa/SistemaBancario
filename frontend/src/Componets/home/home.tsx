@@ -1,6 +1,6 @@
 import "./home.css"
 import { useEffect, useState } from "react";
-import { Depositar, Sacar, Transferir } from "../../services/api";
+import { BuscarSaldo, Depositar, Sacar, Transferir } from "../../services/api";
 import {Link , useNavigate} from "react-router-dom";
 
 export const Home = () => {
@@ -9,7 +9,7 @@ export const Home = () => {
     const [usuario, setUsuario] = useState<any>(null);
     const navigate = useNavigate();
   
-
+      //busca os dados do usuario salvos no localstorage e converte
       useEffect(() => {
         const dados = localStorage.getItem("usuario");
         if(dados) {
@@ -17,6 +17,27 @@ export const Home = () => {
         }
       }, []);
 
+      //atualiza o saldo a cada 2 segundos, para usuarios com conta poupança
+      useEffect(() =>{
+        if(!usuario) return;
+
+          const intervalo = setInterval(async() =>{
+            try{
+              const resposta = await BuscarSaldo(usuario.id);
+              if(resposta && resposta.Saldo !== undefined) {
+                const atualizado = {...usuario, saldo: resposta.Saldo};
+                localStorage.setItem("usuario", JSON.stringify(atualizado));
+                setUsuario(atualizado);
+              }
+          } catch(erro) {
+            console.error("Erro ao buscar saldo:", erro);
+          }
+        }, 2000);
+
+        return () => clearInterval(intervalo);
+      }, [usuario]);
+
+      //função que espera retornar os dados da api e faz transferencia
       async function handleTransferir() {
         const resposta = await Transferir(usuario.id, idDestino, valor);
         if(resposta.erro) {
@@ -28,6 +49,7 @@ export const Home = () => {
         setUsuario(atualizado)
       }
 
+      //função que espera retornar os dados da api e faz deposito
       async function handleDepositar(){
        const resposta = await Depositar(usuario.id, valor);
        const atualizado = {...usuario, saldo: resposta.Saldo};
@@ -35,12 +57,15 @@ export const Home = () => {
        setUsuario(atualizado)
       }
 
+      //função que espera retornar os dados da api e faz saque
       async function handleSacar() {
         const resposta = await Sacar(usuario.id, valor);
         const atualizado = {...usuario, saldo: resposta.Saldo};
         localStorage.setItem("usuario", JSON.stringify(atualizado));
         setUsuario(atualizado);
       }
+
+      //função que limpa o localstorage e redireciona para tela de login
       async function handleLogout() {
         localStorage.removeItem("usuario");
         navigate("/login");
@@ -82,6 +107,7 @@ export const Home = () => {
               <span className="conta-label">Saldo</span>
               <span className="saldo-value">R$ {usuario.saldo?.toFixed(2)}</span>
             </div>
+            <span className="rendimento-badge">📈 Rendendo 0,5% a cada 20s</span>
           </div>
           <div className="link-transacoes">
               <Link to="/transacoes" className="nav-link">📋 Histórico de Transações</Link>
