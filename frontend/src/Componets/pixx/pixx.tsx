@@ -10,6 +10,8 @@ function Pixx(){
     const [usuario, setUsuario] = useState<any>(null);
     const navigate = useNavigate();
     const [flag, setFlag] = useState<boolean>(false);
+    const [erro, setErro] = useState<string>("");
+    const [erroPix, setErroPix] = useState<string>("");
 
     useEffect(() => {
         const dados = localStorage.getItem("usuario");
@@ -20,16 +22,42 @@ function Pixx(){
     }, [])
 
     async function handleBuscarDestinatario(){
+        if(!emailPix.trim()){
+            setErro("Email é obrigatório")
+            setTimeout(() => {
+                setErro("");
+            }, 2000);
+            return;
+        }
+        if(emailPix.includes("@") == false || emailPix.includes(".") == false){
+            setErro("Digite um email válido");
+            setTimeout(() => {
+                setErro("");
+            }, 2000);
+            return;
+        }
+
         const resposta = await BuscarUsuarioPorEmail(emailPix);
         if (resposta.erro){
-            setDestinatario(null);
-            alert(resposta.erro);
+            setErro("Email não encontrado");
+            setTimeout(() => {
+                setErro("");
+            }, 2000);
         } else {
             setDestinatario(resposta);
         }
     }
 
     async function handleEnviarPix() {
+        if(!valorPix || valorPix <= 0 ){
+            
+            setErroPix("Valor inválido");
+            setTimeout(() => {
+                setErroPix("");
+            }, 2000);
+            return;
+
+        }
         const resposta = await EnviarPix(usuario.id, emailPix, valorPix);
         if(resposta.erro){
             alert(resposta.erro)
@@ -58,6 +86,7 @@ function Pixx(){
                     />
                     <button className="btn-buscar" onClick={handleBuscarDestinatario}>Buscar</button>
                 </div>
+                    {erro && <p className="msg-erro">{erro}</p>}
 
                 {destinatario && (
                     <div className="destinatario-card">
@@ -81,6 +110,7 @@ function Pixx(){
                             onChange={(e) => setValorPix(Number(e.target.value))}
                         />
                         <button className="btn-pix" onClick={handleEnviarPix}>💸 Enviar Pix</button>
+                        {erroPix && <p className="msg-erro">{erroPix}</p>}
                         {flag && <p className="msg-sucesso">Pix enviado com sucesso!</p>}
                     </div>
                 )}

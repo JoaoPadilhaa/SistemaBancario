@@ -4,9 +4,14 @@ import { BuscarSaldo, Depositar, Sacar, Transferir } from "../../services/api";
 import {Link , useNavigate} from "react-router-dom";
 
 export const Home = () => {
-    const [valor, setValor] = useState<number>(0);
+    const [valorOperacao, setValorOperacao] = useState<number>(0);
+    const [valorTransferencia, setValorTransferencia] = useState<number>(0);
     const [idDestino, setIdDestino] = useState<number>(0);
     const [usuario, setUsuario] = useState<any>(null);
+    const [erroOperacoes, setErroOperacoes] = useState<string>("");
+    const [erroTransferencia, setErroTransferencia] = useState<string>("");
+    const [sucesso, setSucesso] = useState<string>("");
+    const [sucessoOperacao, setSucessoOperacao] = useState<string>("");
     const navigate = useNavigate();
   
       //busca os dados do usuario salvos no localstorage e converte
@@ -39,30 +44,79 @@ export const Home = () => {
 
       //função que espera retornar os dados da api e faz transferencia
       async function handleTransferir() {
-        const resposta = await Transferir(usuario.id, idDestino, valor);
-        if(resposta.erro) {
-          alert(resposta.erro);
-          return
+        if(!idDestino){
+          setErroTransferencia("Digite o id de destino");
+          setTimeout(() => {
+            setErroTransferencia("");
+          }, 2000);
+          return;
         }
+        if(!valorTransferencia){
+          setErroTransferencia("Digite um valor");
+          setTimeout(() => {
+            setErroTransferencia("");
+          }, 2000);
+          return;
+        }
+
+        if(!valorTransferencia || valorTransferencia < 0){
+          setErroTransferencia("Digite um valor válido");
+          setTimeout(() => {
+          setErroTransferencia("");
+        }, 2000);
+        return;
+        }
+        
+        const resposta = await Transferir(usuario.id, idDestino, valorTransferencia);
+
         const atualizado = {...usuario, saldo: resposta.saldo};
         localStorage.setItem("usuario", JSON.stringify(atualizado));
         setUsuario(atualizado)
+        setSucesso("Transferência realizada com sucesso!");
+        setTimeout(() => {
+          setSucesso("");
+        }, 2000);
       }
 
       //função que espera retornar os dados da api e faz deposito
       async function handleDepositar(){
-       const resposta = await Depositar(usuario.id, valor);
+
+        if(!valorOperacao || valorOperacao < 0){
+          setErroOperacoes("Digite um valor válido");
+          setTimeout(() => {
+            setErroOperacoes("");
+          }, 2000);
+          return;
+        }
+
+       const resposta = await Depositar(usuario.id, valorOperacao);
        const atualizado = {...usuario, saldo: resposta.Saldo};
        localStorage.setItem("usuario", JSON.stringify(atualizado));
        setUsuario(atualizado)
+       setSucessoOperacao("Deposito realizado com sucesso");
+       setTimeout(() => {
+          setSucessoOperacao("");
+       }, 2000);
       }
 
       //função que espera retornar os dados da api e faz saque
       async function handleSacar() {
-        const resposta = await Sacar(usuario.id, valor);
+        if(!valorOperacao || valorOperacao < 0){
+          setErroOperacoes("Digite um valor válido");
+          setTimeout(() => {
+            setErroOperacoes("");
+          }, 2000);
+          return;
+        }
+
+        const resposta = await Sacar(usuario.id, valorOperacao);
         const atualizado = {...usuario, saldo: resposta.Saldo};
         localStorage.setItem("usuario", JSON.stringify(atualizado));
         setUsuario(atualizado);
+        setSucessoOperacao("Saque realizado com sucesso");
+        setTimeout(() => {
+          setSucessoOperacao("");
+        }, 2000);
       }
 
       //função que limpa o localstorage e redireciona para tela de login
@@ -122,12 +176,14 @@ export const Home = () => {
               <input
                 type="number"
                 placeholder="Valor"
-                onChange={(e) => setValor(Number(e.target.value))}
+                onChange={(e) => setValorOperacao(Number(e.target.value))}
               />
               <div className="operacao-btns">
                 <button className="btn-depositar" onClick={handleDepositar}>Depositar</button>
                 <button className="btn-sacar" onClick={handleSacar}>Sacar</button>
               </div>
+              {sucessoOperacao && <p className="login-sucesso">{sucessoOperacao}</p>}
+              {erroOperacoes && <p className="msg-erro">{erroOperacoes}</p>}
             </div>
           </div>
 
@@ -142,10 +198,12 @@ export const Home = () => {
               <input
                 type="number"
                 placeholder="Valor"
-                onChange={(e) => setValor(Number(e.target.value))}
+                onChange={(e) => setValorTransferencia(Number(e.target.value))}
               />
               <button className="btn-transferir" onClick={handleTransferir}>Transferir</button>
             </div>
+            {sucesso && <p className="login-sucesso">{sucesso}</p>}
+            {erroTransferencia && <p className="msg-erro">{erroTransferencia}</p>}
           </div>
         </>
       )}

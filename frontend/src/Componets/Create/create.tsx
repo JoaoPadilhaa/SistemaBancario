@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import './create.css';
-import { Registrar } from '../../services/api';
+import { BuscarUsuarioPorEmail, Registrar } from '../../services/api';
 import { Link, useNavigate } from 'react-router-dom';
 
 export const Create = () => {
@@ -13,7 +13,45 @@ export const Create = () => {
     const [tipo, setTipo] = useState<string>("");
     const navigate = useNavigate();
 
+    //função que vai registrar o usuario
     async function handleRegistrar() {
+        if (!titular.trim()){
+            setMensagem("Nome é obrigatório");
+            setSucesso(false);
+            return;
+        }
+        if (!email.trim()){
+            setMensagem("Email é obrigatório");
+            setSucesso(false);
+            return;
+        }
+        if(!email.includes("@")){
+            setMensagem("Email inválido");
+            setSucesso(false);
+            return;
+        }
+        if(!senha.trim()){
+            setMensagem("Senha é obrigatório");
+            setSucesso(false);
+            return;
+        }
+        if(!tipo){
+            setMensagem("Selecione o tipo de conta");
+            setSucesso(false);
+            return;
+        }
+        if(isNaN(saldoInicial) || saldoInicial < 0 ){
+            setMensagem("Saldo inicial inválido");
+            setSucesso(false);
+            return;
+        }
+        const emailExistente = await BuscarUsuarioPorEmail(email);
+        if(!emailExistente.erro) {
+            setMensagem("Email já cadastrado");
+            setSucesso(false);
+            return;
+        }
+
         const resposta = await Registrar(email, senha, titular, saldoInicial, tipo);
         if (resposta.erro) {
             setMensagem(resposta.erro);

@@ -13,6 +13,19 @@ function Logarr(){
     
     // Quando o usuário clicar no botão entrar, chama a função handleLogin
     async function handleLogin(){
+        if(!email.trim()){
+            setErro("Email é obritório");
+            return;
+        }
+        if(email.includes("@") == false || email.includes(".") == false){
+            setErro("Email invalido");
+            return;
+        }
+        if(!senha.trim()){
+            setErro("Senha é obrigatório")
+            return;
+        }
+
         const resposta = await LoginAPI(email,senha);
 
         if (resposta.erro) {
