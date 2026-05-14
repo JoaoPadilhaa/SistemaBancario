@@ -23,7 +23,7 @@ public class BancoDeDados
         connection.Open();
 
         //prepara o comando sql select
-        using var command = new MySqlCommand("SELECT id, titular, saldo FROM contas", connection);
+        using var command = new MySqlCommand("SELECT id, titular, saldo, tipo FROM contas", connection);
         //Executa o Select e recebe um 'reader" (leitor de linhas)
         using var reader = command.ExecuteReader();
 
@@ -34,7 +34,8 @@ public class BancoDeDados
             var conta = new ContaBancaria(
                 reader.GetInt32("id"), //pega coluna id
                 reader.GetString("titular"), //pega coluna titular
-                reader.GetDecimal("saldo") //pega coluna saldo
+                reader.GetDecimal("saldo"), //pega coluna saldo
+                reader.GetString("tipo")
             );
             //Adiciona o objto na lista contas que foi criada lá em cima
             contas.Add(conta);
@@ -52,7 +53,7 @@ public class BancoDeDados
         connection.Open();
 
         //Prepara o comando de SQL de insert
-        using var command = new MySqlCommand("SELECT id, titular, saldo FROM contas WHERE id = @id", connection);
+        using var command = new MySqlCommand("SELECT id, titular, saldo, tipo FROM contas WHERE id = @id", connection);
         //Substitui o @id pelos valor real
         command.Parameters.AddWithValue("@id", id);
 
@@ -66,7 +67,8 @@ public class BancoDeDados
             return new ContaBancaria(
                 reader.GetInt32("id"),
                 reader.GetString("titular"),
-                reader.GetDecimal("saldo")
+                reader.GetDecimal("saldo"),
+                reader.GetString("tipo")
             );
         }
         //se não encontrou nenhuma conta retorna null
@@ -240,7 +242,7 @@ public class BancoDeDados
 
         //Prepara o comando SQL para atualizar o saldo das contas poupanças
         using var command = new MySqlCommand(
-            "UPDATE contas SET saldo = saldo * 0.5 WHERE tipo = 'poupanca'",
+            "UPDATE contas SET saldo = saldo * 1.01 WHERE tipo = 'poupanca'",
             connection
         );
 

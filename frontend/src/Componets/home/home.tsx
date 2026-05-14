@@ -107,10 +107,14 @@ export const Home = () => {
               <span className="conta-label">Saldo</span>
               <span className="saldo-value">R$ {usuario.saldo?.toFixed(2)}</span>
             </div>
-            <span className="rendimento-badge">📈 Rendendo 0,5% a cada 20s</span>
+            {usuario.tipo === "poupanca" && (
+              <span className="rendimento-badge">📈 Rendendo 1.01% a cada 20s</span>
+            )}
+            
           </div>
           <div className="link-transacoes">
-              <Link to="/transacoes" className="nav-link">📋 Histórico de Transações</Link>
+              <Link to="/transacoes" className="nav-link">📋 Histórico</Link>
+              <Link to="/pix" className="nav-link">💸 Pix</Link>
           </div>
           <div className="operacoes">
             <h3>Operações</h3>

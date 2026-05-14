@@ -217,7 +217,9 @@ body {
 /* Link de transações */
 .link-transacoes {
   margin-bottom: 16px;
-  text-align: center;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
 }
 
 /* Indicador de rendimento */

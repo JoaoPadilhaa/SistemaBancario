@@ -105,7 +105,16 @@ public class HttpServer
             else if(metodo == "POST" && caminho == "/api/login")
             {
                 HandleLogin(context);
-            }            
+            }
+            else if(metodo == "GET" && caminho.StartsWith("/api/usuarios/buscar"))
+            {
+                string email = context.Request.QueryString["email"] ?? "";
+                HandleBuscarUsuarioPorEmail(context, email);
+            } 
+            else if (metodo == "POST" && caminho == "/api/pix")
+            {
+                HandlePix(context);
+            }           
             else
             {
                 //nenhuma rota bateu, retorna 404
@@ -152,6 +161,7 @@ public class HttpServer
             titular = titular,
             saldo = saldoInicial,
             email = email,
+            tipo = tipo,
             mensagem = "Usuário registrado com sucesso"});
         EnviarResposta(context, json, 201);
 
@@ -185,7 +195,8 @@ public class HttpServer
                 id = conta.Id,
                 titular = conta.Titular,
                 saldo = conta.Saldo,
-                email = usuario.Email
+                email = usuario.Email,
+                tipo = conta.Tipo
             });
             EnviarResposta(context, json, 200);
         }
@@ -380,6 +391,98 @@ public class HttpServer
             return;
         };
         string json = JsonSerializer.Serialize(conta);
+        EnviarResposta(context, json, 200);
+    }
+
+    private void HandleBuscarUsuarioPorEmail(HttpListenerContext context, string email)
+    {
+
+        //converte o caractere especial para "@" novamento
+        //O email chega com o @ substituído por %40, então temos que converter ele de volta
+        string emailDecodificado = Uri.UnescapeDataString(email);
+
+        //Busca o usuario no banco com o email digitado no front
+        var usuario = _banco.BuscarUsuarioPorEmail(emailDecodificado);
+
+        //se for nulo da erro e retorna
+        if(usuario == null)
+        {
+            EnviarResposta(context, "{\"erro\":\"Usuário não encontrado\"}", 404);
+            return;
+        }
+
+        //busca a conta com o id do usuario que buscamos ali acima
+        var conta = _banco.BuscarContaPorId(usuario.ContaId);
+        //converte o usuario para json
+        string json = JsonSerializer.Serialize(new {
+            email = usuario.Email,
+            titular = conta.Titular,
+            contaId = conta.Id
+        });
+
+        //envia o usuario convertido em json e a resposta 200
+        EnviarResposta(context, json, 200);
+    }
+
+    private void HandlePix(HttpListenerContext context)
+    {
+        //Lê o body que o front mandou
+        using var reader = new StreamReader(context.Request.InputStream, context.Request.ContentEncoding);
+        string body = reader.ReadToEnd();
+
+        //Transforma o json em algo legivel
+        var dados = JsonSerializer.Deserialize<JsonElement>(body);
+
+        //Pega os dados
+        int idOrigem = dados.GetProperty("idOrigem").GetInt32();
+        string emailDestino = dados.GetProperty("emailDestino").GetString();
+        decimal valor = dados.GetProperty("valor").GetDecimal();
+
+        //Busca o usuario que vai receber o pix, pelo email acima
+        var usuarioDestino = _banco.BuscarUsuarioPorEmail(emailDestino);
+        
+        //Verifica se o usuario retornado e nulo, se for da erro e retorna
+        if(usuarioDestino == null)
+        {
+            EnviarResposta(context, "{\"erro\":\"Destinatário não encontrado\"}", 200);
+            return;
+        }
+
+        //Pega o id do usuario que buscamos ali em cima
+        int idDestino = usuarioDestino.ContaId;
+        //Pega o id da conta que vamos enviar o pix
+        var origem = _banco.BuscarContaPorId(idOrigem);
+        //pega o id da conta, do usuario ali de cima
+        var destino = _banco.BuscarContaPorId(idDestino);
+
+        //verifica se alguma conta e nula, se for retorna um erro
+        if (origem == null || destino == null)
+        {
+            EnviarResposta(context, "{\"erro\":\"Conta não encontrada\"}", 404);
+            return;
+        }
+
+        //Verifica se o saldo é menor que o valor do pix, se for retorna erro
+        if(origem.Saldo < valor)
+        {
+            EnviarResposta(context, "{\"erro\":\"Saldo insuficiente\"}", 400);
+            return;
+        }
+
+        //Saca o valor da conta origem
+        origem.Sacar(valor);
+        //Deposita o valor na conta de destino
+        destino.Depositar(valor);
+        //Atualiza o saldo da conta de origem
+        _banco.AtualizarSaldo(idOrigem, origem.Saldo);
+        //atualiza o saldo da conta de destino
+        _banco.AtualizarSaldo(idDestino, destino.Saldo);
+        //Registra a transação no histórico
+        _banco.RegistrarTransacao(idOrigem, "pix", valor);
+
+        //Converte tudo para json e envia a mensagem
+        string json = JsonSerializer.Serialize(new{ mensagem = "Pix enviado com sucesso!", saldo= origem.Saldo});
+        //Envia de fato
         EnviarResposta(context, json, 200);
     }
 }

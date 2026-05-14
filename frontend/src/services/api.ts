@@ -79,3 +79,20 @@ export async function BuscarSaldo(contaId:number) {
     const response = await fetch (`${API_URL}/api/contas/${contaId}`);
     return response.json();
 }
+
+export async function BuscarUsuarioPorEmail(email:string)
+{   
+    //EncodeURICompoente garante que o email enviado, seja enviado exatamente como foi escrito
+    const response = await fetch(`${API_URL}/api/usuarios/buscar?email=${encodeURIComponent(email)}`);
+    return response.json();
+}
+
+export async function EnviarPix(idOrigem: number, emailDestino: string, valor:number)
+{
+    const response = await fetch(`${API_URL}/api/pix`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({idOrigem, emailDestino, valor})
+    });
+    return response.json();
+}
