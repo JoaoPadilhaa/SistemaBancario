@@ -19,9 +19,10 @@ public static class UsuarioController
         string titular = dados.GetProperty("titular").GetString();
         decimal saldoInicial = dados.GetProperty("saldoInicial").GetDecimal();
         string tipo = dados.GetProperty("tipo").GetString() ?? "corrente";
+        string senhaHash = HashSenha(senha);
 
         int contaId = banco.CriarConta(titular, saldoInicial, tipo);
-        banco.CriarUsuario(email, senha, contaId);
+        banco.CriarUsuario(email, senhaHash, contaId);
 
         string json = JsonSerializer.Serialize(new {
             id = contaId,
@@ -51,7 +52,7 @@ public static class UsuarioController
             return;
         }
 
-        if (senha == usuario.Senha)
+        if (HashSenha(senha) == usuario.Senha)
         {
             var conta = banco.BuscarContaPorId(usuario.ContaId);
             string json = JsonSerializer.Serialize(new {
@@ -107,13 +108,19 @@ public static class UsuarioController
             return;
         }
 
-        if (usuario.Senha != senhaAtual)
+        if (usuario.Senha != HashSenha(senhaAtual))
         {
             enviarResposta(context, "{\"erro\":\"Senha atual incorreta\"}", 400);
             return;
         }
 
-        banco.AtualizarSenha(email, novaSenha);
+        banco.AtualizarSenha(email, HashSenha(novaSenha));
         enviarResposta(context, "{\"mensagem\":\"Senha alterada com sucesso\"}", 200);
+    }
+
+    private static string HashSenha(string senha){
+        using var sha = System.Security.Cryptography.SHA256.Create();
+        byte[] bytes = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(senha));
+        return Convert.ToHexString(bytes).ToLower();
     }
 }
