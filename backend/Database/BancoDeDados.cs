@@ -249,4 +249,24 @@ public class BancoDeDados
         //Executa o comando
         command.ExecuteNonQuery();
     }
+
+    public void AtualizarSenha(string email, string novaSenha)
+    {
+        //Abre conexão com o banco
+        using var connection = new MySqlConnection(_connectionString);
+        connection.Open();
+
+        //Prepara o comando SQL para atualizar a nova senha
+        using var command = new MySqlCommand(
+            "UPDATE usuarios SET senha = @senha WHERE email = @email",
+            connection
+        );
+
+        //Substitui os parametros pelos valores reais
+        command.Parameters.AddWithValue("@senha", novaSenha);
+        command.Parameters.AddWithValue("@email", email);
+
+        //Executa o comando
+        command.ExecuteNonQuery();
+    }
 }

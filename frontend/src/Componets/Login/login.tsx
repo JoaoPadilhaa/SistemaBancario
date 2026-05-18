@@ -44,7 +44,7 @@ function Logarr(){
     return(
         <div className="login-page">
             <div className="login-card">
-                <Link to={"/"} className="nav-link">← Home</Link>
+                <Link to={"/registrar"} className="nav-link">← Register</Link>
                 <h2>Login</h2>
                 <div className="login-form">
                     <input 

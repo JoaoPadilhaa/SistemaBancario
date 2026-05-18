@@ -19,6 +19,7 @@ export const Home = () => {
         const dados = localStorage.getItem("usuario");
         if(dados) {
           setUsuario(JSON.parse(dados));
+          console.log(dados);
         }
       }, []);
 
@@ -169,6 +170,7 @@ export const Home = () => {
           <div className="link-transacoes">
               <Link to="/transacoes" className="nav-link">📋 Histórico</Link>
               <Link to="/pix" className="nav-link">💸 Pix</Link>
+              <Link to="/perfil" className="nav-link">👤 Perfil</Link>
           </div>
           <div className="operacoes">
             <h3>Operações</h3>

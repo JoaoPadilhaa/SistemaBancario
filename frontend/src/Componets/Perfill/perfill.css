@@ -1,0 +1,174 @@
+.perfil-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 40px;
+  background-color: #1a1a2e;
+}
+
+.perfil-card {
+  width: 100%;
+  max-width: 480px;
+  padding: 30px;
+  background-color: #16213e;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.perfil-card h2 {
+  color: #4fc3f7;
+  font-size: 1.5rem;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.perfil-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.perfil-campo {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #0f3460;
+}
+
+.campo-label {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.campo-value {
+  color: #eee;
+  font-weight: 500;
+}
+
+/* Avatar */
+.avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4fc3f7, #0288d1);
+  color: white;
+  font-size: 2.2rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+  box-shadow: 0 0 0 4px #16213e, 0 0 0 6px #4fc3f7, 0 8px 20px rgba(79, 195, 247, 0.4);
+  animation: avatarPulse 3s ease-in-out infinite;
+}
+
+@keyframes avatarPulse {
+  0%, 100% { box-shadow: 0 0 0 4px #16213e, 0 0 0 6px #4fc3f7, 0 8px 20px rgba(79, 195, 247, 0.4); }
+  50% { box-shadow: 0 0 0 4px #16213e, 0 0 0 8px #4fc3f7, 0 8px 28px rgba(79, 195, 247, 0.7); }
+}
+
+/* Formulário de senha */
+.senha-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 20px;
+  background-color: #0f3460;
+  border-radius: 10px;
+}
+
+.senha-form input {
+  padding: 12px 16px;
+  border: 1px solid #4fc3f7;
+  border-radius: 8px;
+  background-color: #1a1a2e;
+  color: #eee;
+  font-size: 1rem;
+  outline: none;
+}
+
+.senha-form input::placeholder { color: #888; }
+
+.senha-btns {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-confirmar {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: #4caf50;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-cancelar {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: #f44336;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-confirmar:hover, .btn-cancelar:hover { opacity: 0.85; }
+
+.btn-alterar-senha {
+  margin-top: 20px;
+  padding: 12px 20px;
+  border: 1px solid #4fc3f7;
+  border-radius: 8px;
+  background: transparent;
+  color: #4fc3f7;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.btn-alterar-senha:hover {
+  background-color: #4fc3f7;
+  color: #1a1a2e;
+}
+
+.msg-sucesso {
+  padding: 10px;
+  background-color: #1b5e20;
+  border-radius: 8px;
+  text-align: center;
+  color: #a5d6a7;
+  font-weight: 500;
+}
+
+.msg-erro {
+  padding: 10px;
+  background-color: #4a1c1c;
+  border-radius: 8px;
+  text-align: center;
+  color: #ef9a9a;
+  font-weight: 500;
+}
+
+.nav-link {
+  display: inline-block;
+  margin-bottom: 20px;
+  padding: 10px 18px;
+  background-color: #0f3460;
+  color: #4fc3f7;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.nav-link:hover { background-color: #1a4a7a; }

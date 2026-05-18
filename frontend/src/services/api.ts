@@ -69,17 +69,20 @@ export async function Login(email:string, senha: string){
     return response.json();
 }
 
+//requisição get para listar todas transações
 export async function ListarTransacoes(contaId:number)
 {
     const response = await fetch(`${API_URL}/api/contas/${contaId}/transacoes`);
     return response.json();
 }
 
+//requisição get para buscar saldo atualizado(para contas poupança, que ficam rendendo)
 export async function BuscarSaldo(contaId:number) {
     const response = await fetch (`${API_URL}/api/contas/${contaId}`);
     return response.json();
 }
 
+//requisição get para buscar usuario por email
 export async function BuscarUsuarioPorEmail(email:string)
 {   
     //EncodeURICompoente garante que o email enviado, seja enviado exatamente como foi escrito
@@ -87,12 +90,23 @@ export async function BuscarUsuarioPorEmail(email:string)
     return response.json();
 }
 
+//requisição post para enviar o pix
 export async function EnviarPix(idOrigem: number, emailDestino: string, valor:number)
 {
     const response = await fetch(`${API_URL}/api/pix`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({idOrigem, emailDestino, valor})
+    });
+    return response.json();
+}
+
+export async function AlterarSenha(email:string, senhaAtual:string, novaSenha:string)
+{
+    const response = await fetch(`${API_URL}/api/perfil`, {
+        method: "PATCH",
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email, senhaAtual, novaSenha})
     });
     return response.json();
 }

@@ -69,7 +69,7 @@ export const Create = () => {
     return (
         <div className="register-page">
             <div className="register-card">
-                <Link to="/" className="nav-link">← Home</Link>
+                <Link to="/login" className="nav-link">← Login</Link>
                 <h2>Criar Conta</h2>
                 <div className="register-form">
                     <input
