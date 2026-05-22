@@ -1,8 +1,8 @@
 # Sistema Bancário
 
-Sistema bancário completo com autenticação, operações financeiras, Pix, histórico de transações e perfil de usuário.
+Sistema bancário completo com autenticação via Keycloak, operações financeiras, Pix, histórico de transações e perfil de usuário.
 
-Desenvolvido para estudo de C# puro (sem frameworks) no backend e React com TypeScript no frontend.
+Desenvolvido para estudo de C# puro (sem frameworks) no backend, React com TypeScript no frontend, Keycloak para autenticação e Docker para orquestração dos serviços.
 
 ## Tecnologias
 
@@ -10,27 +10,45 @@ Desenvolvido para estudo de C# puro (sem frameworks) no backend e React com Type
 - C# (.NET 8) — servidor HTTP puro com `HttpListener`
 - MySQL — banco de dados relacional
 - MySql.Data — pacote de conexão com o banco
+- Microsoft.IdentityModel.Tokens — validação de JWT
 - Padrão Controller — handlers organizados por domínio
 
 **Frontend:**
 - React 18 + TypeScript
 - React Router DOM — navegação e proteção de rotas
+- keycloak-js — integração com Keycloak
 - Vite — build tool
+
+**Infraestrutura:**
+- Docker + Docker Compose
+- Keycloak 24 — servidor de autenticação (OAuth2/OpenID Connect)
+- MySQL 8 — banco do Keycloak (separado do banco da aplicação)
 
 ## Funcionalidades
 
-- Registro de usuário com validação de email duplicado
-- Login com email e senha
-- Proteção de rotas (redireciona para login se não autenticado)
+- Autenticação via Keycloak (OAuth2/OpenID Connect)
+- Validação de token JWT no backend usando chaves públicas do Keycloak
+- Provisionamento automático de conta bancária no primeiro login
 - Dois tipos de conta: **Corrente** e **Poupança**
-- Poupança com rendimento automático de 1.01% a cada 20 segundos
-- Saldo atualizado em tempo real no frontend
+- Poupança com rendimento automático de 1% a cada 20 segundos
+- Saldo atualizado em tempo real
 - Depósito e saque com validações
 - Transferência entre contas por ID
 - **Pix** — transferência por email com busca de destinatário
 - Histórico de transações por conta
 - Tela de perfil com avatar e alteração de senha
-- Validações de campos obrigatórios em todos os formulários
+- Hash de senha com SHA256
+- Proteção de todas as rotas da API com token JWT
+
+## Arquitetura
+
+```
+Frontend (React) → Keycloak (autenticação)
+Frontend (React) → Backend C# (operações bancárias)
+Backend C# → valida token JWT com chaves públicas do Keycloak
+Backend C# → MySQL (dados bancários)
+Keycloak → MySQL separado (dados de autenticação)
+```
 
 ## Estrutura do Projeto
 
@@ -38,35 +56,38 @@ Desenvolvido para estudo de C# puro (sem frameworks) no backend e React com Type
 backend/
 ├── Program.cs                    — Ponto de entrada + timer de rendimento
 ├── Models/
-│   ├── ContaBancaria.cs          — Modelo da conta (tipo, saldo, depositar, sacar)
+│   ├── ContaBancaria.cs          — Modelo da conta
 │   ├── Usuarios.cs               — Modelo do usuário
 │   └── Transacao.cs              — Modelo de transação
 ├── Database/
 │   └── BancoDeDados.cs           — Conexão e queries MySQL
 └── Server/
-    ├── HttpServer.cs             — Roteador HTTP (CORS, rotas, dispatch)
+    ├── HttpServer.cs             — Roteador HTTP + validação JWT
     └── Controllers/
         ├── ContaController.cs    — Depositar, sacar, transferir, listar, buscar
-        ├── UsuarioController.cs  — Login, registrar, buscar por email, alterar senha
+        ├── UsuarioController.cs  — Provisionar, buscar por email, alterar senha
         ├── TransacaoController.cs — Listar transações
         └── PixController.cs      — Enviar Pix por email
 
 frontend/
 ├── src/
-│   ├── services/api.ts           — Funções de chamada à API
+│   ├── keycloak.ts               — Configuração do Keycloak
+│   ├── UserContext.tsx           — Contexto global do usuário
+│   ├── services/api.ts           — Funções de chamada à API (com token JWT)
 │   ├── Componets/
-│   │   ├── home/                 — Tela principal (saldo, operações)
-│   │   ├── Login/                — Tela de login
-│   │   ├── Create/               — Tela de registro
-│   │   ├── Perfill/              — Tela de perfil e alteração de senha
-│   │   ├── pixx/                 — Tela de Pix
+│   │   ├── home/                 — Tela principal
+│   │   ├── Cadastro/             — Completar cadastro (primeiro login)
+│   │   ├── Perfill/              — Perfil e alteração de senha
+│   │   ├── pixx/                 — Pix por email
 │   │   ├── transacoes/           — Histórico de transações
-│   │   └── ProtectedRoute/       — Componente de proteção de rotas
+│   │   └── ProtectedRoute/       — Proteção de rotas
 │   └── Pages/                    — Wrappers de página
 └── index.html
 
 database/
 └── schema.sql                    — Script de criação do banco
+
+docker-compose.yml                — MySQL + Keycloak em containers
 ```
 
 ## Como Rodar
@@ -74,44 +95,34 @@ database/
 ### Pré-requisitos
 - .NET 8 SDK
 - Node.js
-- MySQL
+- Docker Desktop
 
-### 1. Banco de Dados
+### 1. Subir os containers (MySQL + Keycloak)
 
-```sql
-CREATE DATABASE IF NOT EXISTS banco_sistema;
-USE banco_sistema;
-
-CREATE TABLE contas (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    titular VARCHAR(100) NOT NULL,
-    saldo DECIMAL(18, 2) NOT NULL DEFAULT 0.00,
-    tipo VARCHAR(20) NOT NULL DEFAULT 'corrente'
-);
-
-CREATE TABLE usuarios (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    senha VARCHAR(255) NOT NULL,
-    conta_id INT,
-    FOREIGN KEY (conta_id) REFERENCES contas(id)
-);
-
-CREATE TABLE transacoes (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    conta_id INT NOT NULL,
-    tipo VARCHAR(20) NOT NULL,
-    valor DECIMAL(18, 2) NOT NULL,
-    data_hora DATETIME NOT NULL DEFAULT NOW(),
-    FOREIGN KEY (conta_id) REFERENCES contas(id)
-);
+```bash
+docker compose up -d
 ```
 
-### 2. Backend
+Aguarda ~60 segundos e acessa `http://localhost:8080`.
+
+### 2. Configurar o Keycloak
+
+1. Loga com `admin` / `admin1234`
+2. Cria realm: `banco-sistema`
+3. Cria client: `banco-frontend` (OpenID Connect, Direct access grants ON, redirect `http://localhost:3000/*`)
+4. Em **Realm settings → Login**: habilita **User registration**
+
+### 3. Banco de dados da aplicação
+
+Conecta no MySQL local (porta 3306) e executa o `database/schema.sql`.
+
+### 4. Backend
 
 ```bash
 cd backend
 dotnet add package MySql.Data
+dotnet add package Microsoft.IdentityModel.Tokens
+dotnet add package System.IdentityModel.Tokens.Jwt
 dotnet run
 ```
 
@@ -119,7 +130,7 @@ O servidor inicia em `http://localhost:5000`.
 
 > Ajuste a connection string no `Program.cs` com seu usuário e senha do MySQL.
 
-### 3. Frontend
+### 5. Frontend
 
 ```bash
 cd frontend
@@ -127,17 +138,28 @@ npm install
 npm run dev
 ```
 
-O frontend inicia em `http://localhost:3000`.
+O frontend inicia em `http://localhost:3000` e redireciona automaticamente para o login do Keycloak.
+
+## Fluxo de Autenticação
+
+```
+1. Usuário acessa http://localhost:3000
+2. Keycloak redireciona para tela de login
+3. Após login, Keycloak retorna token JWT
+4. Frontend busca conta bancária pelo email do token
+5. Se não tem conta → tela de completar cadastro
+6. Se tem conta → home com dados e operações
+7. Todas as requisições ao backend incluem o token JWT
+8. Backend valida o token com chaves públicas do Keycloak
+```
 
 ## Rotas da API
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
-| POST | /api/registrar | Cria usuário + conta |
-| POST | /api/login | Autentica usuário |
+| POST | /api/provisionar | Cria conta bancária no primeiro login |
 | PATCH | /api/perfil | Altera senha do usuário |
 | GET | /api/contas | Lista todas as contas |
-| POST | /api/contas | Cria conta avulsa |
 | GET | /api/contas/{id} | Busca conta por ID |
 | POST | /api/contas/{id}/depositar | Deposita valor |
 | POST | /api/contas/{id}/sacar | Saca valor |
@@ -145,3 +167,5 @@ O frontend inicia em `http://localhost:3000`.
 | GET | /api/contas/{id}/transacoes | Lista transações da conta |
 | GET | /api/usuarios/buscar?email= | Busca usuário por email |
 | POST | /api/pix | Transfere por email (Pix) |
+
+> Todas as rotas exigem token JWT válido no header `Authorization: Bearer <token>`

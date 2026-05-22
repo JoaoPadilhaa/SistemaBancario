@@ -1,0 +1,63 @@
+services:
+
+  # Banco de dados da aplicação (contas, transações, etc)
+  mysql:
+    image: mysql:8.0
+    container_name: banco_sistema_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root1234
+      MYSQL_DATABASE: banco_sistema
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - banco_network
+
+  # Banco de dados do Keycloak (usuários, tokens, etc)
+  keycloak_db:
+    image: mysql:8.0
+    container_name: keycloak_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root1234
+      MYSQL_DATABASE: keycloak
+      MYSQL_USER: keycloak
+      MYSQL_PASSWORD: keycloak1234
+    volumes:
+      - keycloak_db_data:/var/lib/mysql
+    networks:
+      - banco_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot1234"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Keycloak — servidor de autenticação
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: keycloakk
+    command: start-dev
+    environment:
+      KC_DB: mysql
+      KC_DB_URL: jdbc:mysql://keycloak_db:3306/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak1234
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin1234
+    ports:
+      - "8080:8080"
+    depends_on:
+      keycloak_db:
+        condition: service_healthy
+    networks:
+      - banco_network
+
+volumes:
+  mysql_data:
+  keycloak_db_data:
+
+networks:
+  banco_network:
+    driver: bridge

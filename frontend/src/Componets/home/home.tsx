@@ -1,27 +1,28 @@
 import "./home.css"
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { BuscarSaldo, Depositar, Sacar, Transferir } from "../../services/api";
 import {Link , useNavigate} from "react-router-dom";
+import { useUsuario } from "../../UserContext";
+import keycloak from "../../keycloak";
 
 export const Home = () => {
+    const { usuario, setUsuario} = useUsuario();
     const [valorOperacao, setValorOperacao] = useState<number>(0);
     const [valorTransferencia, setValorTransferencia] = useState<number>(0);
     const [idDestino, setIdDestino] = useState<number>(0);
-    const [usuario, setUsuario] = useState<any>(null);
     const [erroOperacoes, setErroOperacoes] = useState<string>("");
     const [erroTransferencia, setErroTransferencia] = useState<string>("");
     const [sucesso, setSucesso] = useState<string>("");
     const [sucessoOperacao, setSucessoOperacao] = useState<string>("");
+    console.log("Home - usuario:", usuario);
+    console.log("usuario truthy?", !!usuario);
+    console.log("usuario id", usuario?.id);
+    
+
     const navigate = useNavigate();
   
       //busca os dados do usuario salvos no localstorage e converte
-      useEffect(() => {
-        const dados = localStorage.getItem("usuario");
-        if(dados) {
-          setUsuario(JSON.parse(dados));
-          console.log(dados);
-        }
-      }, []);
+ 
 
       //atualiza o saldo a cada 2 segundos, para usuarios com conta poupança
       useEffect(() =>{
@@ -123,7 +124,7 @@ export const Home = () => {
       //função que limpa o localstorage e redireciona para tela de login
       async function handleLogout() {
         localStorage.removeItem("usuario");
-        navigate("/login");
+        keycloak.logout({ redirectUri: window.location.origin });
       }
 
       
@@ -132,14 +133,10 @@ export const Home = () => {
       {!usuario && (
         <div className="guest-actions">
           <h1>Sistema Bancário</h1>
-          <p>Faça login ou crie uma conta para continuar</p>
-          <div className="guest-links">
-            <Link to="/login" className="nav-link">Login</Link>
-            <Link to="/registrar" className="nav-link">Criar nova conta</Link>
-          </div>
+          <p>Carregando...</p>
         </div>
       )}
-
+    
       {usuario && (
         <>
           <div className="header">

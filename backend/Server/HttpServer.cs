@@ -8,6 +8,7 @@ using BankSystem.Database;
 using System.IO;
 using System.Threading.Tasks;
 using BankSystem.Server.Controllers;
+using System.Collections.Generic;
 
 public class HttpServer
 {
@@ -33,18 +34,64 @@ public class HttpServer
         }
     }
 
-    public void ProcessarRequisicao(HttpListenerContext context)
+    private async Task<bool> ValidarToken(string token)
+    {
+        try{
+            using var client = new System.Net.Http.HttpClient();
+            string jwkUrl = "http://localhost:8080/realms/banco-sistema/protocol/openid-connect/certs";
+            string jwkJson = await client.GetStringAsync(jwkUrl);
+
+            var jwks = new Microsoft.IdentityModel.Tokens.JsonWebKeySet(jwkJson);
+
+            var parametros = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = "http://localhost:8080/realms/banco-sistema",
+                ValidateAudience = false,
+                ValidateLifetime = true,
+                IssuerSigningKeys = jwks.GetSigningKeys()
+            };
+            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+            handler.ValidateToken(token, parametros, out _);
+            return true;
+        }
+        catch {
+            return false;
+        }
+    }
+
+    public async void ProcessarRequisicao(HttpListenerContext context)
     {
         var request = context.Request;
         var response = context.Response;
 
         response.Headers.Add("Access-Control-Allow-Origin", "*");
         response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS");
-        response.Headers.Add("Access-Control-Allow-Headers", "Content-Type");
+        response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
         if (request.HttpMethod == "OPTIONS")
         {
             response.StatusCode = 200;
+            response.Close();
+            return;
+        }
+
+        //Verifica se Header existe
+        string authHeader = request.Headers["Authorization"] ?? "";
+        if(string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+        {
+            response.StatusCode = 401;
+            response.Close();
+            return;
+        }
+        //Extrai o token
+        string token = authHeader.Replace("Bearer ", "");
+
+        //Valida o token com o Keycloak < NOVO
+        bool tokenValido = await ValidarToken(token);
+        if(!tokenValido)
+        {
+            response.StatusCode = 401;
             response.Close();
             return;
         }
@@ -92,6 +139,9 @@ public class HttpServer
 
             else if (metodo == "PATCH" && caminho == "/api/perfil")
                 UsuarioController.HandleAtualizarSenha(context, _banco, EnviarResposta);
+            
+            else if(metodo == "POST" && caminho == "/api/provisionar")
+                UsuarioController.HandleProvisionar(context, _banco, EnviarResposta);
 
             else
             {

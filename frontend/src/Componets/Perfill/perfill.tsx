@@ -2,22 +2,16 @@ import { useEffect, useState } from "react";
 import "./perfill.css";
 import { AlterarSenha } from "../../services/api";
 import { Link } from "react-router-dom";
+import { useUsuario } from "../../UserContext";
 
 function Perfill(){
-    const [usuario, setUsuario] = useState<any>(null);
+    const { usuario, setUsuario} = useUsuario();
     const [mostrarForm, setMostrarForm] = useState<boolean>(false);
     const [senhaAtual, setSenhaAtual] = useState<string>("");
     const [novaSenha, setNovaSenha] = useState<string>("");
     const [confirmarSenha, setConfirmarSenha] = useState<string>("");
     const [mensagem, setMensagem] = useState<string>("");
 
-    useEffect(() =>{
-        const dados = localStorage.getItem("usuario");
-
-        if(dados){
-            setUsuario(JSON.parse(dados));
-        }
-    }, []);
 
     async function handleAtualizarSenha(){
         if(!senhaAtual || !novaSenha || !confirmarSenha){

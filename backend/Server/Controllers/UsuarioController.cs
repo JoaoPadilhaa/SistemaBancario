@@ -83,9 +83,12 @@ public static class UsuarioController
 
         var conta = banco.BuscarContaPorId(usuario.ContaId);
         string json = JsonSerializer.Serialize(new {
+            id = conta.Id,
             email = usuario.Email,
             titular = conta.Titular,
-            contaId = conta.Id
+            saldo = conta.Saldo,
+            tipo = conta.Tipo
+            
         });
         enviarResposta(context, json, 200);
     }
@@ -122,5 +125,53 @@ public static class UsuarioController
         using var sha = System.Security.Cryptography.SHA256.Create();
         byte[] bytes = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(senha));
         return Convert.ToHexString(bytes).ToLower();
+    }
+
+    public static void HandleProvisionar(HttpListenerContext context, BancoDeDados banco, Action<HttpListenerContext, string, int> enviarResposta)
+    {
+        //Lê o body recebido do front
+        using var reader = new StreamReader(context.Request.InputStream, context.Request.ContentEncoding);
+        string body = reader.ReadToEnd();
+        //Converte o JSON em um objeto JsonElement para facilitar a extração dos dados
+        var dados = JsonSerializer.Deserialize<JsonElement>(body);
+
+        //Extrai cada dado do body
+        string email = dados.GetProperty("email").GetString();
+        string titular = dados.GetProperty("titular").GetString();
+        string tipo = dados.GetProperty("tipo").GetString();
+        decimal saldoInicial = dados.GetProperty("saldoInicial").GetDecimal();
+
+        //Busca usuario existente com o email enviado
+        var usuarioExistente = banco.BuscarUsuarioPorEmail(email);
+        //se existir, busca a conta do usuario, converte os dados, e retorna os dados convertidos
+        //Se usuarioExistente não encontrar a conta por email, ele vai ser nulo, logo vai pular esse if
+        if(usuarioExistente != null){
+            var contaExistente = banco.BuscarContaPorId(usuarioExistente.ContaId);
+            string jsonExistente = JsonSerializer.Serialize(new {
+                id = contaExistente.Id,
+                titular = contaExistente.Titular,
+                saldo = contaExistente.Saldo,
+                tipo = contaExistente.Tipo
+            });
+
+            //envia json convertido 
+            enviarResposta(context, jsonExistente, 200);
+            return;
+        }
+
+        //Cria conta e usuario sem senha
+        int contaId = banco.CriarConta(titular, saldoInicial, tipo);
+        banco.CriarUsuario(email, "", contaId);//Senha vazia, pois a autenticação é com o keycloak
+        //Busca conta recem criada e converte os dados para json
+        var conta = banco.BuscarContaPorId(contaId);
+        string json = JsonSerializer.Serialize(new {
+            id = conta.Id,
+            email = email,
+            titular = conta.Titular,
+            saldo = conta.Saldo,
+            tipo = conta.Tipo
+        });
+        //Envia a conta recem criada, com os dados convertidos em json
+        enviarResposta(context, json, 201);
     }
 }

@@ -1,21 +1,26 @@
 import { Navigate } from "react-router-dom";
+import keycloak from "../../keycloak";
 
 interface Props {
     children: React.ReactNode;
 }
 
-//Dentro das rotas, vamos passar <ProtectRoute><aqui dentro o elemento></ProtectRoute>
-//O elemento automaticamente se torna child(filho) do ProtectRoute, então podemos acessar o elemento filho atraves da prop Children
-function ProtectRoute({children}: Props) {
-    //Pega os dados do usuario salvo no localStorage(se tiver algum usuario logado)
-    const dados = localStorage.getItem("usuario");
-
-    //Se não tiver usuario logado, retorna para tela de login
-    if (!dados) {
-        return <Navigate to="/login" />;
+function ProtectRoute({ children }: Props) {
+    // Se o Keycloak não tá autenticado, manda pro login
+    if (!keycloak.authenticated) {
+        keycloak.login();
+        return null;
     }
 
-    //se tiver, retorna o elemento filho
+    // Se tá autenticado mas não tem conta bancária, manda completar cadastro
+    const temConta = localStorage.getItem("usuario");
+    const temEmailPendente = localStorage.getItem("keycloak_email");
+
+    if (!temConta && temEmailPendente) {
+        return <Navigate to="/completar-cadastro" />;
+    }
+
+    // Tudo certo — renderiza a página
     return <>{children}</>;
 }
 
